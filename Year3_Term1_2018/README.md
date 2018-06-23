@@ -12,3 +12,4 @@
 | 8 | ECE 3101 | Data Communication |   | 3 | 0 | 3 |
 | 9 | ECE 3102 | Data Communication Sessional |   | 0 | 3 | 1.5 |
 | 10 | CSE 3150 | Viva Voce |  |  |  | 0.75 |
+| | | **Total** | | 15 | 10.5 | 21 |
