@@ -16,7 +16,7 @@ char tarr[token_len]; // temporary array tarr
 char header_file[n_header_file][token_len]={ "stdio.h", "math.h", "ctype.h" };
 char data_type[n_data_type][token_len]={ "int", "char", "float", "double" };
 char return_type[n_return_type][token_len]={ "void", "int", "char", "float", "double" };
-int nline=0,nerror=0; // line number lineno , number of error noerr
+int nline=1,nerror=0; // line number lineno , number of error noerr
 
 // FUNCTION PROTOTYPE
 char next_token(FILE *ptr); // ignore space and return next token as `tarr` and `ch` in a single line
@@ -45,39 +45,15 @@ int main(){
             break;
         }
         else if(ch=='\n')continue;
-        else if(ch=='#'){
-            ch = next_token(fp);
-            if(strcmp(tarr,"include")==0){
-                if(ch!='<')ch = next_token(fp);
-                if(ch=='<'){
-                    // Note: <   header_file> invalid ,but <header_file    > valid . fixed
-                    ch=fgetc(fp);
-                    if(!isalpha(ch)){
-                        errmsg("space is not valid after `<` in `include` section");
-                    }
-                    else ungetc(ch,fp); //
-                    ch = next_token(fp);
-                    if(isfound(tarr, n_header_file, token_len, header_file)){
-                        if(ch!='>')ch = next_token(fp);
-                        if(ch=='>'){
-                            ch = next_token(fp);
-                            if(ch=='\n'){
-                                sucmsg("include success");
-                                nline++;
-                                continue;
-                            }
-                            else errmsg("error in include section");
-                        }
-                        else errmsg("syntax error==(>)");
-                    }
-                    else errmsg("syntax error==(`header-file`)");
-                }
-                else errmsg("syntax error==(<)");
+        else if(ch=='#' && tarr[0]=='\0'){
+            if(isdirective(fp)){
+                sucmsg("Directive success");
+                continue;
             }
-            else errmsg("syntax error==(include)");
-            continue;// for next token
+            else errmsg("invalid directive");
         }
         else{ // main function
+            printf("main ===== ch=%c  and tarr=%s\n",ch,tarr);
             if(isfound(tarr, n_return_type, token_len, return_type)){
                 if(ch!=' ')errmsg("syntax error after=( data-type) space required.");
                 else{
@@ -165,7 +141,7 @@ int main(){
     }
 
     fclose(fp);
-
+    printf("\n nline==%d\n",nline);
     printf("\n\n Build finished:  %d  ERROR(s).\n\n",nerror);
     return 0;
 }
@@ -243,4 +219,43 @@ int isfound(char word[],int token_row, int token_col, char token[][token_col]){
         if(strcmp(word,token[i])==0)return 1;
     }
     return 0;
+}
+
+int isdirective(FILE *ptr){
+    int validity=1;
+    char ch;
+    ch = next_token(ptr);
+    if(strcmp(tarr,"include")==0){
+        if(ch!='<')ch = next_token(ptr);
+        if(ch=='<'){
+            // Note: <   header_file> invalid ,but <header_file    > valid . fixed
+            ch=fgetc(ptr);
+            if(!isalpha(ch)){
+                errmsg("space is not valid after `<` in `include` section");
+            }
+            else ungetc(ch,ptr); //
+            ch = next_token(ptr);
+            if(isfound(tarr, n_header_file, token_len, header_file)){
+                if(ch!='>')ch = next_token(ptr);
+                if(ch=='>'){
+                    ch = next_token(ptr);
+                    if(ch!='\n') validity = 0;
+                }
+                else validity = 0;
+            }
+            else validity = 0;
+        }
+        else validity = 0;
+    }
+    else if(strcmp(tarr,"define")==0){
+        ch= next_token(ptr);
+        if(isidentifier(tarr)){
+            while(ch!='\n'){
+                ch= next_token(ptr);
+                if(ch==';')validity = 0;
+            }
+        }
+        else validity=0;
+    }
+    return validity;
 }
