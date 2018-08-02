@@ -50,7 +50,13 @@ int main(){
             if(strcmp(tarr,"include")==0){
                 if(ch!='<')ch = next_token(fp);
                 if(ch=='<'){
-                    ch = next_token(fp); // Note: <   header_file> invalid ,but <header_file    > valid . so need to fix it
+                    // Note: <   header_file> invalid ,but <header_file    > valid . fixed
+                    ch=fgetc(fp);
+                    if(!isalpha(ch)){
+                        errmsg("space is not valid after `<` in `include` section");
+                    }
+                    else ungetc(ch,fp); //
+                    ch = next_token(fp);
                     if(isfound(tarr, n_header_file, token_len, header_file)){
                         if(ch!='>')ch = next_token(fp);
                         if(ch=='>'){
